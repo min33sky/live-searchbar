@@ -9,6 +9,7 @@ This is a live search bar that will search through a list of names and display t
 - React
 - Typescript
 - Tailwind CSS
+- React-Router-Dom
 - @faker-js/faker
 
 ## Installation

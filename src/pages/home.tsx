@@ -1,5 +1,13 @@
-import React from 'react';
+import Footer from '../components/Footer';
+import Header from '../components/Header';
+import { Outlet } from 'react-router-dom';
 
 export default function home() {
-  return <div>home</div>;
+  return (
+    <main className="flex h-screen flex-col items-center justify-center text-white antialiased">
+      <Header />
+      <Outlet />
+      <Footer />
+    </main>
+  );
 }

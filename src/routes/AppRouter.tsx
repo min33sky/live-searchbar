@@ -8,10 +8,16 @@ const router = createBrowserRouter([
     path: '/',
     Component: home,
     ErrorBoundary: ErrorPage,
-  },
-  {
-    path: '/about',
-    Component: About,
+    children: [
+      {
+        path: '',
+        Component: () => <div>Home</div>,
+      },
+      {
+        path: '/about',
+        Component: About,
+      },
+    ],
   },
 ]);
 
