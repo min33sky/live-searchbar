@@ -2,6 +2,7 @@ import { RouterProvider, createBrowserRouter } from 'react-router-dom';
 import home from '../pages/home';
 import About from '../pages/about';
 import ErrorPage from '../pages/error';
+import LiveSearch from "../components/LiveSearch.tsx";
 
 const router = createBrowserRouter([
   {
@@ -11,7 +12,7 @@ const router = createBrowserRouter([
     children: [
       {
         path: '',
-        Component: () => <div>Home</div>,
+        Component: LiveSearch,
       },
       {
         path: '/about',
