@@ -1,9 +1,25 @@
 import { MagnifyingGlassIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import { useEffect, useRef, useState } from "react";
+import getPerson from "../api/getPerson.ts";
+import useDebounce from "../hooks/useDebounce.ts";
+import { useQuery } from "@tanstack/react-query";
 
 export default function LiveSearch() {
   const [input, setInput] = useState("");
+  const debounceText = useDebounce(input, 500);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  const { isLoading } = useQuery({
+    queryKey: ["person", debounceText],
+    queryFn: () => getPerson(debounceText),
+    enabled: !!debounceText,
+    onSuccess: (data) => {
+      console.log(data);
+    },
+    onError: (error) => {
+      console.log("Error: ", error);
+    },
+  });
 
   useEffect(() => {
     inputRef.current?.focus();
@@ -25,6 +41,13 @@ export default function LiveSearch() {
           console.log("focus");
         }}
       />
+
+      {input && isLoading && (
+        <div
+          className={`h-4 w-4 animate-spin rounded-full border-2 border-gray-100`}
+        />
+      )}
+
       {input && (
         <button
           onClick={() => {

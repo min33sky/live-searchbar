@@ -1,10 +1,10 @@
-import { Link } from 'react-router-dom';
+import { Link } from "react-router-dom";
 
 export default function Header() {
   return (
     <header className="fixed left-0 top-0 w-full">
       <nav className="mx-auto w-full max-w-lg py-4">
-        <ul className="flex space-x-6 text-xl font-bold ">
+        <ul className="flex space-x-6 px-6 text-xl font-bold md:px-0 ">
           <li className="transition hover:text-violet-300">
             <Link to="/">홈</Link>
           </li>
