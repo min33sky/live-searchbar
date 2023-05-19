@@ -11,7 +11,7 @@ export default function LiveSearch() {
 
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const { data: results, isLoading } = useQuery({
+  const { data: results, isFetching } = useQuery({
     queryKey: ["person", debounceText],
     queryFn: () => getPerson(debounceText),
     enabled: !!debounceText,
@@ -50,10 +50,10 @@ export default function LiveSearch() {
         }}
       />
 
-      {input && isLoading && (
+      {input && isFetching && (
         <div
           aria-label={"Loader"}
-          className={`mr-4 h-4 w-4 animate-spin rounded-full border-2 border-gray-100`}
+          className={`mr-4 h-4 w-4 animate-spin rounded-full border-2 border-gray-100 border-b-blue-500`}
         />
       )}
 
