@@ -3,9 +3,11 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import getPerson from '../api/getPerson.ts';
 import useDebounce from '../hooks/useDebounce.ts';
 import { useQuery } from '@tanstack/react-query';
-import { ne } from '@faker-js/faker';
+import { useNavigate } from 'react-router-dom';
 
 export default function LiveSearch() {
+  const navigate = useNavigate();
+
   const [input, setInput] = useState(''); // 검색어 입력
   const debounceText = useDebounce(input, 500); // input의 변경이 멈추면 500ms 후에 debounceText가 변경된다.
   const [isVisible, setIsVisible] = useState(false); // 검색 결과창 보이기 여부
@@ -54,8 +56,7 @@ export default function LiveSearch() {
         case 'ArrowRight':
           return;
         case 'Enter':
-          console.log('Enter');
-          console.log(results[cursorIndex]);
+          navigate(`/search/${results[cursorIndex].name}`);
           return;
         case 'Escape':
           setInput('');
@@ -66,7 +67,7 @@ export default function LiveSearch() {
 
       setCursorIndex(nextIndexCount);
     },
-    [cursorIndex, results],
+    [cursorIndex, navigate, results],
   );
 
   /**
@@ -157,7 +158,8 @@ export default function LiveSearch() {
               className={`my-2 flex cursor-pointer items-center justify-between rounded-md p-4 transition duration-300 hover:bg-slate-700
                           ${index === cursorIndex && 'bg-slate-700'}`}
               onClick={() => {
-                // onClose?.();
+                setInput(item.name);
+                navigate(`/search/${item.name}`);
               }}
             >
               <span className="flex items-center">
