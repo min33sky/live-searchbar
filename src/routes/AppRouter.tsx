@@ -4,6 +4,7 @@ import About from '../pages/about';
 import ErrorPage from '../pages/error';
 import LiveSearch from '../components/LiveSearch.tsx';
 import SearchPage from '../pages/search.tsx';
+import getPerson from '../api/getPerson.ts';
 
 const router = createBrowserRouter([
   {
@@ -22,6 +23,9 @@ const router = createBrowserRouter([
       {
         path: '/search/:keyword',
         Component: SearchPage,
+        loader: ({ params }) => {
+          return getPerson(params.keyword ?? '');
+        },
       },
     ],
   },

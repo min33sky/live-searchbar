@@ -1,6 +1,6 @@
 import { MagnifyingGlassIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import getPerson from '../api/getPerson.ts';
+import getPeople from '../api/getPeople.ts';
 import useDebounce from '../hooks/useDebounce.ts';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
@@ -23,7 +23,7 @@ export default function LiveSearch() {
    */
   const { isFetching } = useQuery({
     queryKey: ['person', debounceText],
-    queryFn: () => getPerson(debounceText),
+    queryFn: () => getPeople(debounceText),
     enabled: !!debounceText && cursorIndex === -1, // 커서가 선택되면 API 호출을 중단한다.
     onSuccess: (data) => {
       setResults(data);
