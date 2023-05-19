@@ -11,6 +11,7 @@ export default function LiveSearch() {
   const [input, setInput] = useState(''); // 검색어 입력
   const debounceText = useDebounce(input, 500); // input의 변경이 멈추면 500ms 후에 debounceText가 변경된다.
   const [isVisible, setIsVisible] = useState(false); // 검색 결과창 보이기 여부
+  const [results, setResults] = useState<Profile[]>([]); // 검색 결과
 
   const [cursorIndex, setCursorIndex] = useState(-1); // 키보드 커서 위치
 
@@ -20,12 +21,12 @@ export default function LiveSearch() {
   /**
    * debounceText가 변경될 때마다 API를 호출한다.
    */
-  const { data: results, isFetching } = useQuery({
+  const { isFetching } = useQuery({
     queryKey: ['person', debounceText],
     queryFn: () => getPerson(debounceText),
-    enabled: !!debounceText && cursorIndex === -1,
-    keepPreviousData: true,
+    enabled: !!debounceText && cursorIndex === -1, // 커서가 선택되면 API 호출을 중단한다.
     onSuccess: (data) => {
+      setResults(data);
       setIsVisible(true);
     },
     onError: (error) => {
@@ -60,8 +61,10 @@ export default function LiveSearch() {
           return;
         case 'Escape':
           setInput('');
+          setResults([]);
           break;
         default:
+          // 커서를 초기화해서 API 호출을 허용한다.
           nextIndexCount = -1;
       }
 
@@ -119,7 +122,7 @@ export default function LiveSearch() {
         onChange={(e) => setInput(e.target.value)}
         onKeyDown={handleKeyDown}
         onBlur={() => {
-          // setIsVisible(false);
+          setIsVisible(false);
         }}
         onFocus={() => {
           setIsVisible(true);
@@ -166,7 +169,9 @@ export default function LiveSearch() {
                 <MagnifyingGlassIcon className={`mr-3 h-5 w-5`} />
                 {item.name}
               </span>
-              <span className={`text-sm font-light`}>{item.email}</span>
+              <span className={`truncate pl-2 text-xs font-light`}>
+                {item.email}
+              </span>
             </li>
           ))}
         </ul>
