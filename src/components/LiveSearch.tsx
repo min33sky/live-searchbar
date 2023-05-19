@@ -3,6 +3,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import getPerson from '../api/getPerson.ts';
 import useDebounce from '../hooks/useDebounce.ts';
 import { useQuery } from '@tanstack/react-query';
+import { ne } from '@faker-js/faker';
 
 export default function LiveSearch() {
   const [input, setInput] = useState(''); // 검색어 입력
@@ -23,7 +24,6 @@ export default function LiveSearch() {
     enabled: !!debounceText && cursorIndex === -1,
     keepPreviousData: true,
     onSuccess: (data) => {
-      console.log(data);
       setIsVisible(true);
     },
     onError: (error) => {
@@ -50,12 +50,18 @@ export default function LiveSearch() {
         case 'ArrowDown':
           nextIndexCount = (cursorIndex + 1) % results.length;
           break;
+        case 'ArrowLeft':
+        case 'ArrowRight':
+          return;
         case 'Enter':
           console.log('Enter');
+          console.log(results[cursorIndex]);
+          return;
+        case 'Escape':
+          setInput('');
           break;
         default:
-          console.log('ArrowUp or ArrowDown or Enter만 허용합니다.');
-          return;
+          nextIndexCount = -1;
       }
 
       setCursorIndex(nextIndexCount);
@@ -86,10 +92,11 @@ export default function LiveSearch() {
     if (!selectedCursorRef.current) return;
 
     selectedCursorRef.current.scrollIntoView({
-      behavior: 'smooth',
       block: 'center',
     });
-  }, [cursorIndex]);
+
+    setInput(results?.[cursorIndex]?.name || '');
+  }, [cursorIndex, results]);
 
   return (
     <div
@@ -141,7 +148,7 @@ export default function LiveSearch() {
       {isVisible && results && input && (
         <ul
           aria-label="Search Result View"
-          className="custom-scrollbar absolute -left-[2px] -right-[2px] top-full max-h-60 overflow-y-scroll border-0 border-slate-900 bg-gradient-to-r from-slate-900 to-slate-800"
+          className="custom-scrollbar absolute -left-[2px] -right-[2px] top-full max-h-72 overflow-y-scroll border-0 border-t-2 border-slate-900 border-t-slate-600 bg-gradient-to-r from-slate-900 to-slate-800"
         >
           {results?.map((item, index) => (
             <li
@@ -153,8 +160,11 @@ export default function LiveSearch() {
                 // onClose?.();
               }}
             >
-              <span>{item.name}</span>
-              <span className={`text-sm`}>{item.email}</span>
+              <span className="flex items-center">
+                <MagnifyingGlassIcon className={`mr-3 h-5 w-5`} />
+                {item.name}
+              </span>
+              <span className={`text-sm font-light`}>{item.email}</span>
             </li>
           ))}
         </ul>
