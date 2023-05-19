@@ -4,7 +4,7 @@ import { Outlet } from 'react-router-dom';
 
 export default function home() {
   return (
-    <main className="flex h-screen flex-col items-center justify-center text-white antialiased">
+    <main className="-mt-20 flex h-screen flex-col items-center justify-center text-white antialiased">
       <Header />
       <Outlet />
       <Footer />

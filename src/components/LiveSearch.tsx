@@ -1,66 +1,135 @@
-import { MagnifyingGlassIcon, XMarkIcon } from "@heroicons/react/24/outline";
-import { useEffect, useRef, useState } from "react";
-import getPerson from "../api/getPerson.ts";
-import useDebounce from "../hooks/useDebounce.ts";
-import { useQuery } from "@tanstack/react-query";
+import { MagnifyingGlassIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import getPerson from '../api/getPerson.ts';
+import useDebounce from '../hooks/useDebounce.ts';
+import { useQuery } from '@tanstack/react-query';
 
 export default function LiveSearch() {
-  const [input, setInput] = useState("");
-  const debounceText = useDebounce(input, 500);
-  const [isVisible, setIsVisible] = useState(false);
+  const [input, setInput] = useState(''); // 검색어 입력
+  const debounceText = useDebounce(input, 500); // input의 변경이 멈추면 500ms 후에 debounceText가 변경된다.
+  const [isVisible, setIsVisible] = useState(false); // 검색 결과창 보이기 여부
 
-  const inputRef = useRef<HTMLInputElement>(null);
+  const [cursorIndex, setCursorIndex] = useState(-1); // 키보드 커서 위치
 
+  const inputRef = useRef<HTMLInputElement>(null); // input에 포커스를 주기 위한 ref
+  const selectedCursorRef = useRef<HTMLLIElement>(null); // 커서 위치의 스크롤 이동을 위한 ref
+
+  /**
+   * debounceText가 변경될 때마다 API를 호출한다.
+   */
   const { data: results, isFetching } = useQuery({
-    queryKey: ["person", debounceText],
+    queryKey: ['person', debounceText],
     queryFn: () => getPerson(debounceText),
-    enabled: !!debounceText,
+    enabled: !!debounceText && cursorIndex === -1,
     keepPreviousData: true,
     onSuccess: (data) => {
       console.log(data);
       setIsVisible(true);
     },
     onError: (error) => {
-      console.log("Error: ", error);
+      console.log('Error: ', error);
     },
   });
 
+  /**
+   * 검색 결과 선택을 위한 키보드 핸들러
+   */
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent<HTMLInputElement>) => {
+      if (!results || results.length === 0) return;
+
+      let nextIndexCount = -1;
+
+      switch (e.key) {
+        case 'ArrowUp':
+          nextIndexCount =
+            cursorIndex === -1
+              ? results.length - 1
+              : (cursorIndex + results.length - 1) % results.length;
+          break;
+        case 'ArrowDown':
+          nextIndexCount = (cursorIndex + 1) % results.length;
+          break;
+        case 'Enter':
+          console.log('Enter');
+          break;
+        default:
+          console.log('ArrowUp or ArrowDown or Enter만 허용합니다.');
+          return;
+      }
+
+      setCursorIndex(nextIndexCount);
+    },
+    [cursorIndex, results],
+  );
+
+  /**
+   * 마운트 될 때 inputRef에 포커스를 준다.
+   */
   useEffect(() => {
     inputRef.current?.focus();
   }, []);
 
+  /**
+   * input이 비어있으면 커서 위치를 -1로 초기화한다.
+   */
+  useEffect(() => {
+    if (!input || input.trim() === '') {
+      setCursorIndex(-1);
+    }
+  }, [input]);
+
+  /**
+   * 커서 위치가 변경되면 스크롤을 중앙으로 이동한다.
+   */
+  useEffect(() => {
+    if (!selectedCursorRef.current) return;
+
+    selectedCursorRef.current.scrollIntoView({
+      behavior: 'smooth',
+      block: 'center',
+    });
+  }, [cursorIndex]);
+
   return (
     <div
+      aria-label="Search Container"
       className={`relative z-50 flex w-10/12 max-w-lg items-center border-2 px-4 py-3 text-lg transition duration-300
       ${
         input
-          ? "border-transparent bg-slate-900"
-          : "rounded-full border-gray-500 bg-transparent"
+          ? 'border-slate-900 border-r-slate-800 bg-gradient-to-r from-slate-900 to-slate-800'
+          : 'rounded-full border-gray-500 bg-transparent'
       }`}
     >
       <MagnifyingGlassIcon className={`h-5 w-5 flex-shrink-0 text-gray-300`} />
       <input
         ref={inputRef}
-        placeholder={"검색어를 입력해 주세요"}
+        aria-label="Search Input"
+        placeholder={'검색어를 입력해 주세요'}
         className={`flex-1 truncate bg-transparent px-3 py-2 text-gray-300 outline-none`}
         value={input}
         onChange={(e) => setInput(e.target.value)}
+        onKeyDown={handleKeyDown}
+        onBlur={() => {
+          // setIsVisible(false);
+        }}
         onFocus={() => {
-          console.log("focus");
+          setIsVisible(true);
         }}
       />
 
       {input && isFetching && (
         <div
-          aria-label={"Loader"}
+          aria-label="Loader"
           className={`mr-4 h-4 w-4 animate-spin rounded-full border-2 border-gray-100 border-b-blue-500`}
         />
       )}
 
       {input && (
         <button
+          aria-label="Reset Input Button"
           onClick={() => {
-            setInput("");
+            setInput('');
             setIsVisible(false);
             inputRef.current?.focus();
           }}
@@ -68,12 +137,18 @@ export default function LiveSearch() {
           <XMarkIcon className={`h-5 w-5 text-gray-300`} />
         </button>
       )}
+
       {isVisible && results && input && (
-        <ul className="absolute -left-[2px] -right-[2px] top-full border-0 border-slate-900 bg-slate-900">
-          {results?.map((item) => (
+        <ul
+          aria-label="Search Result View"
+          className="custom-scrollbar absolute -left-[2px] -right-[2px] top-full max-h-60 overflow-y-scroll border-0 border-slate-900 bg-gradient-to-r from-slate-900 to-slate-800"
+        >
+          {results?.map((item, index) => (
             <li
+              ref={cursorIndex === index ? selectedCursorRef : null}
               key={item.name}
-              className="my-2 flex cursor-pointer items-center justify-between rounded-md p-4 transition duration-300 hover:bg-slate-700"
+              className={`my-2 flex cursor-pointer items-center justify-between rounded-md p-4 transition duration-300 hover:bg-slate-700
+                          ${index === cursorIndex && 'bg-slate-700'}`}
               onClick={() => {
                 // onClose?.();
               }}
